@@ -1,6 +1,6 @@
 import streamlit as st
 from sqlalchemy.orm import sessionmaker
-
+from models import db, Coproprietaire, Immeuble, Lot, AppelFonds, LigneAppel
 from auth_utils import login
 from pdf_utils import generer_pdf_releve
 
@@ -83,3 +83,6 @@ else:
                 statut="brouillon"
             )
             session.add(appel)
+            session.commit()
+            st.success("Appel de fonds créé !")
+            st.info("Ajoute maintenant la répartition par tantièmes dans le code ou utils")
