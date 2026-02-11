@@ -2,6 +2,17 @@ import streamlit as st
 from models import db, Coproprietaire, Immeuble
 from sqlalchemy.orm import sessionmaker
 
+from auth_utils import login
+
+if "user" not in st.session_state:
+    login()
+else:
+    # ton menu principal
+    menu = ["Dashboard", "Immeubles", "Copropriétaires", "Appels de fonds"]
+    choice = st.sidebar.selectbox("Menu", menu)
+    ...
+
+
 # Base SQLAlchemy
 Session = sessionmaker(bind=db)
 session = Session()
