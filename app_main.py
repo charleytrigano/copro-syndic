@@ -1,6 +1,5 @@
 import streamlit as st
 from sqlalchemy.orm import sessionmaker
-from auth_utils import login
 from models import (
     AppelFonds,
     Coproprietaire,
@@ -20,8 +19,8 @@ def main() -> None:
 
     # --- Login ---
     if "user" not in st.session_state:
-        login()
-        return
+        if not _render_login_screen():
+            return
 
     user_id = st.session_state["user"]
     role = st.session_state["role"]
@@ -123,6 +122,20 @@ def main() -> None:
                     session.commit()
                     st.success("Appel de fonds créé !")
                     st.info("Étape suivante : ajouter la répartition par tantièmes.")
+
+
+def _render_login_screen() -> bool:
+    try:
+        from auth_utils import login
+
+        login()
+        return "user" in st.session_state
+    except Exception as exc:
+        st.error("Erreur de chargement de l'authentification.")
+        st.code(f"{exc.__class__.__name__}: {exc}", language="text")
+        with st.expander("Diagnostic déploiement"):
+            st.code(_safe_deployment_diagnostic(), language="text")
+        return False
 
 
 def _safe_deployment_diagnostic() -> str:
