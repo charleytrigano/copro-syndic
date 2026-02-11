@@ -10,7 +10,6 @@ from models import (
     ensure_default_data,
 )
 from pdf_utils import generer_pdf_releve
-from deployment_info import build_deployment_diagnostic
 
 
 def main() -> None:
@@ -38,7 +37,7 @@ def main() -> None:
 
     with st.sidebar.expander("Diagnostic déploiement"):
         st.caption("Vérifiez ici le commit et le contenu d'entrée réellement chargés.")
-        st.code(build_deployment_diagnostic(), language="text")
+        st.code(_safe_deployment_diagnostic(), language="text")
 
     if st.sidebar.button("Se déconnecter"):
         st.session_state.clear()
@@ -124,6 +123,15 @@ def main() -> None:
                     session.commit()
                     st.success("Appel de fonds créé !")
                     st.info("Étape suivante : ajouter la répartition par tantièmes.")
+
+
+def _safe_deployment_diagnostic() -> str:
+    try:
+        from deployment_info import build_deployment_diagnostic
+
+        return build_deployment_diagnostic()
+    except Exception as exc:
+        return f"diagnostic indisponible: {exc.__class__.__name__}"
 
 
 if __name__ == "__main__":
