@@ -1,21 +1,21 @@
 import streamlit as st
-from sqlalchemy.orm import sessionmaker
-from models import (
-    AppelFonds,
-    Coproprietaire,
-    Immeuble,
-    LigneAppel,
-    db,
-    ensure_default_data,
-)
-from pdf_utils import generer_pdf_releve
 
 
 def main() -> None:
+    deps = _load_core_dependencies()
+    if deps is None:
+        return
+
+    Session = deps["Session"]
+    Coproprietaire = deps["Coproprietaire"]
+    Immeuble = deps["Immeuble"]
+    LigneAppel = deps["LigneAppel"]
+    AppelFonds = deps["AppelFonds"]
+    generer_pdf_releve = deps["generer_pdf_releve"]
+
     # --- Base SQLAlchemy ---
-    Session = sessionmaker(bind=db)
     session = Session()
-    ensure_default_data(session)
+    deps["ensure_default_data"](session)
 
     # --- Login ---
     if "user" not in st.session_state:
@@ -122,6 +122,29 @@ def main() -> None:
                     session.commit()
                     st.success("Appel de fonds créé !")
                     st.info("Étape suivante : ajouter la répartition par tantièmes.")
+
+
+def _load_core_dependencies() -> dict | None:
+    try:
+        from sqlalchemy.orm import sessionmaker
+        from models import AppelFonds, Coproprietaire, Immeuble, LigneAppel, db, ensure_default_data
+        from pdf_utils import generer_pdf_releve
+    except Exception as exc:
+        st.error("Erreur de chargement des dépendances applicatives.")
+        st.code(f"{exc.__class__.__name__}: {exc}", language="text")
+        with st.expander("Diagnostic déploiement"):
+            st.code(_safe_deployment_diagnostic(), language="text")
+        return None
+
+    return {
+        "Session": sessionmaker(bind=db),
+        "Coproprietaire": Coproprietaire,
+        "Immeuble": Immeuble,
+        "LigneAppel": LigneAppel,
+        "AppelFonds": AppelFonds,
+        "ensure_default_data": ensure_default_data,
+        "generer_pdf_releve": generer_pdf_releve,
+    }
 
 
 def _render_login_screen() -> bool:
