@@ -1,9 +1,4 @@
-diff --git a/app.py b/app.py
-index 8ea2750cfecea6dcadd2e1a6fc50569699160ef8..884f314aa09b33088622cb49b918a57d4977182c 100644
---- a/app.py
-+++ b/app.py
-@@ -1,88 +1,127 @@
- import streamlit as st
+t streamlit as st
  from sqlalchemy.orm import sessionmaker
 -from models import db, Coproprietaire, Immeuble, Lot, AppelFonds, LigneAppel
 +
@@ -102,7 +97,7 @@ index 8ea2750cfecea6dcadd2e1a6fc50569699160ef8..884f314aa09b33088622cb49b918a57d
                  st.write(f"- {c.nom} ({c.email})")
          else:
              st.write(f"Bienvenue {user.nom}")
-             # Relevé PDF pour le copro connecté
+-            # Relevé PDF pour le copro connecté
              lignes = session.query(LigneAppel).filter_by(copro_id=user.id).all()
              if st.button("Générer mon relevé PDF"):
                  fichier = generer_pdf_releve(user, lignes)
