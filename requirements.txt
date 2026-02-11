@@ -1,5 +1,3 @@
 streamlit
 sqlalchemy
-pandas
-weasyprint
-python-dotenv
+reportlab
