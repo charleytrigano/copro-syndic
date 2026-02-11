@@ -1,4 +1,8 @@
-
+diff --git a/app.py b/app.py
+index 8ea2750cfecea6dcadd2e1a6fc50569699160ef8..884f314aa09b33088622cb49b918a57d4977182c 100644
+--- a/app.py
++++ b/app.py
+@@ -1,88 +1,127 @@
  import streamlit as st
  from sqlalchemy.orm import sessionmaker
 -from models import db, Coproprietaire, Immeuble, Lot, AppelFonds, LigneAppel
@@ -14,15 +18,25 @@
 +)
  from pdf_utils import generer_pdf_releve
  
- # --- Base SQLAlchemy ---
- Session = sessionmaker(bind=db)
- session = Session()
-+ensure_default_data(session)
+-# --- Base SQLAlchemy ---
+-Session = sessionmaker(bind=db)
+-session = Session()
  
- # --- Login ---
- if "user" not in st.session_state:
-     login()
- else:
+-# --- Login ---
+-if "user" not in st.session_state:
+-    login()
+-else:
++def main() -> None:
++    # --- Base SQLAlchemy ---
++    Session = sessionmaker(bind=db)
++    session = Session()
++    ensure_default_data(session)
++
++    # --- Login ---
++    if "user" not in st.session_state:
++        login()
++        return
++
      user_id = st.session_state["user"]
      role = st.session_state["role"]
 -    user = session.query(Coproprietaire).get(user_id)
@@ -143,3 +157,7 @@
 +                    session.commit()
 +                    st.success("Appel de fonds créé !")
 +                    st.info("Étape suivante : ajouter la répartition par tantièmes.")
++
++
++if __name__ == "__main__":
++    main()
