@@ -130,7 +130,7 @@ def _load_core_dependencies() -> dict | None:
         from models import AppelFonds, Coproprietaire, Immeuble, LigneAppel, db, ensure_default_data
         from pdf_utils import generer_pdf_releve
     except Exception as exc:
-        st.error("Erreur de chargement des dépendances applicatives.")
+        st.error("Erreur de chargement des dépendances applicatives (souvent un mauvais commit/branche sur Streamlit Cloud).")
         st.code(f"{exc.__class__.__name__}: {exc}", language="text")
         with st.expander("Diagnostic déploiement"):
             st.code(_safe_deployment_diagnostic(), language="text")
@@ -154,7 +154,7 @@ def _render_login_screen() -> bool:
         login()
         return "user" in st.session_state
     except Exception as exc:
-        st.error("Erreur de chargement de l'authentification.")
+        st.error("Erreur de chargement de l'authentification (vérifiez la branche/commit déployés).")
         st.code(f"{exc.__class__.__name__}: {exc}", language="text")
         with st.expander("Diagnostic déploiement"):
             st.code(_safe_deployment_diagnostic(), language="text")
