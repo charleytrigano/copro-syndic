@@ -1,6 +1,6 @@
 import streamlit as st
 from sqlalchemy.orm import sessionmaker
-from models import db, Coproprietaire, Immeuble, Lot, AppelFonds, LigneAppel
+
 from auth_utils import login
 from pdf_utils import generer_pdf_releve
 
