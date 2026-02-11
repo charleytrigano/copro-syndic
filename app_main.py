@@ -1,9 +1,5 @@
 import streamlit as st
 from sqlalchemy.orm import sessionmaker
-from pathlib import Path
-import hashlib
-import subprocess
-
 from auth_utils import login
 from models import (
     AppelFonds,
@@ -14,6 +10,7 @@ from models import (
     ensure_default_data,
 )
 from pdf_utils import generer_pdf_releve
+from deployment_info import build_deployment_diagnostic
 
 
 def main() -> None:
@@ -41,7 +38,7 @@ def main() -> None:
 
     with st.sidebar.expander("Diagnostic déploiement"):
         st.caption("Vérifiez ici le commit et le contenu d'entrée réellement chargés.")
-        st.code(_build_diagnostic(), language="text")
+        st.code(build_deployment_diagnostic(), language="text")
 
     if st.sidebar.button("Se déconnecter"):
         st.session_state.clear()
@@ -127,33 +124,6 @@ def main() -> None:
                     session.commit()
                     st.success("Appel de fonds créé !")
                     st.info("Étape suivante : ajouter la répartition par tantièmes.")
-
-
-def _build_diagnostic() -> str:
-    app_path = Path(__file__).with_name("app.py")
-    app_preview = ""
-
-    if app_path.exists():
-        app_preview = "\n".join(app_path.read_text(encoding="utf-8").splitlines()[:3])
-
-    commit = "inconnu"
-    try:
-        commit = subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"], text=True
-        ).strip()
-    except Exception:
-        pass
-
-    app_hash = "inconnu"
-    if app_path.exists():
-        app_hash = hashlib.sha256(app_path.read_bytes()).hexdigest()[:12]
-
-    return (
-        f"commit: {commit}\n"
-        f"app.py sha256: {app_hash}\n"
-        "app.py (3 premières lignes):\n"
-        f"{app_preview}"
-    )
 
 
 if __name__ == "__main__":
