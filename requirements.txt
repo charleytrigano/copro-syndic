@@ -3,4 +3,3 @@ sqlalchemy
 pandas
 weasyprint
 python-dotenv
-
