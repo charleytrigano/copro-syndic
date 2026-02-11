@@ -1,8 +1,4 @@
-diff --git a/app.py b/app.py
-index 8ea2750cfecea6dcadd2e1a6fc50569699160ef8..623e1c02ba985d014946e226c3f2fe70faa1af0d 100644
---- a/app.py
-+++ b/app.py
-@@ -1,88 +1,119 @@
+
  import streamlit as st
  from sqlalchemy.orm import sessionmaker
 -from models import db, Coproprietaire, Immeuble, Lot, AppelFonds, LigneAppel
@@ -29,13 +25,14 @@ index 8ea2750cfecea6dcadd2e1a6fc50569699160ef8..623e1c02ba985d014946e226c3f2fe70
  else:
      user_id = st.session_state["user"]
      role = st.session_state["role"]
-     user = session.query(Coproprietaire).get(user_id)
- 
+-    user = session.query(Coproprietaire).get(user_id)
++    user = session.get(Coproprietaire, user_id)
++
 +    if user is None:
 +        st.session_state.clear()
 +        st.warning("Session expirée. Merci de vous reconnecter.")
 +        st.rerun()
-+
+ 
      st.title("Gestion Syndic – Multi Immeubles")
      st.sidebar.write(f"Connecté : {user.nom} ({role})")
  
@@ -95,12 +92,17 @@ index 8ea2750cfecea6dcadd2e1a6fc50569699160ef8..623e1c02ba985d014946e226c3f2fe70
              lignes = session.query(LigneAppel).filter_by(copro_id=user.id).all()
              if st.button("Générer mon relevé PDF"):
                  fichier = generer_pdf_releve(user, lignes)
-                 st.download_button(
-                     "Télécharger PDF",
-                     data=open(fichier, "rb").read(),
+-                st.download_button(
+-                    "Télécharger PDF",
+-                    data=open(fichier, "rb").read(),
 -                    file_name=f"releve_{user.nom}.pdf"
-+                    file_name=f"releve_{user.nom}.pdf",
-                 )
+-                )
++                with open(fichier, "rb") as pdf_file:
++                    st.download_button(
++                        "Télécharger PDF",
++                        data=pdf_file.read(),
++                        file_name=f"releve_{user.nom}.pdf",
++                    )
  
      # --- Appels de fonds ---
      elif choice == "Appels de fonds" and role == "syndic":
