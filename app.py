@@ -40,22 +40,34 @@ def login():
 
 # --- PDF ---
 def generer_pdf(copro, lignes):
-    html = f"<h1>Relevé de compte</h1><h3>{copro.nom}</h3>"
+    fichier = f"releve_{copro.id}.pdf"
+    styles = getSampleStyleSheet()
+    doc = SimpleDocTemplate(fichier)
+    elements = []
+
+    elements.append(Paragraph("Relevé de compte", styles["Title"]))
+    elements.append(Paragraph(f"Copropriétaire : {copro.nom}", styles["Normal"]))
+    elements.append(Paragraph(" ", styles["Normal"]))
+
     total = 0
     for l in lignes:
         solde = l.montant_du - l.montant_paye
         total += solde
-        html += f"<p>Période {l.appel.periode} : {solde:.2f} €</p>"
+        elements.append(
+            Paragraph(
+                f"Période {l.appel.periode} — Dû : {l.montant_du:.2f} € | "
+                f"Payé : {l.montant_paye:.2f} € | Solde : {solde:.2f} €",
+                styles["Normal"]
+            )
+        )
 
-    html += f"<h3>Total dû : {total:.2f} €</h3>"
-    fichier = f"releve_{copro.id}.pdf"
-    HTML(string=html).write_pdf(fichier)
+    elements.append(Paragraph(" ", styles["Normal"]))
+    elements.append(
+        Paragraph(f"<b>Total dû : {total:.2f} €</b>", styles["Heading2"])
+    )
+
+    doc.build(elements)
     return fichier
-
-# --- LOGIN ---
-if "user_id" not in st.session_state:
-    login()
-    st.stop()
 
 # --- UTILISATEUR ---
 user = db.query(Coproprietaire).get(st.session_state["user_id"])
