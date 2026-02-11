@@ -9,7 +9,9 @@ from models import (
     AppelFonds,
     LigneAppel
 )
-from weasyprint import HTML
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+
 
 # --- Initialisation DB ---
 init_db()
