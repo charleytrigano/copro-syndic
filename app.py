@@ -1,44 +1,85 @@
 import streamlit as st
-from models import db, Coproprietaire, Immeuble
 from sqlalchemy.orm import sessionmaker
-
+from models import db, Coproprietaire, Immeuble, Lot, AppelFonds, LigneAppel
 from auth_utils import login
+from pdf_utils import generer_pdf_releve
 
-if "user" not in st.session_state:
-    login()
-else:
-    # ton menu principal
-    menu = ["Dashboard", "Immeubles", "Copropriétaires", "Appels de fonds"]
-    choice = st.sidebar.selectbox("Menu", menu)
-    ...
-
-
-# Base SQLAlchemy
+# --- Base SQLAlchemy ---
 Session = sessionmaker(bind=db)
 session = Session()
 
-st.title("Gestion Syndic – Multi Immeubles")
+# --- Login ---
+if "user" not in st.session_state:
+    login()
+else:
+    user_id = st.session_state["user"]
+    role = st.session_state["role"]
+    user = session.query(Coproprietaire).get(user_id)
 
-menu = ["Dashboard", "Immeubles", "Copropriétaires", "Appels de fonds"]
-choice = st.sidebar.selectbox("Menu", menu)
+    st.title("Gestion Syndic – Multi Immeubles")
+    st.sidebar.write(f"Connecté : {user.nom} ({role})")
 
-if choice == "Dashboard":
-    st.subheader("Dashboard")
-    nb_copro = session.query(Coproprietaire).count()
-    nb_immeubles = session.query(Immeuble).count()
-    st.write(f"Nombre de copropriétaires : {nb_copro}")
-    st.write(f"Nombre d'immeubles : {nb_immeubles}")
+    # --- Menu principal ---
+    menu = ["Dashboard", "Immeubles", "Copropriétaires", "Appels de fonds"]
+    choice = st.sidebar.selectbox("Menu", menu)
 
-elif choice == "Immeubles":
-    st.subheader("Immeubles")
-    if st.button("Ajouter un immeuble"):
-        nom = st.text_input("Nom de l'immeuble")
-        adresse = st.text_input("Adresse")
-        if st.button("Créer"):
-            immeuble = Immeuble(nom=nom, adresse=adresse)
-            session.add(immeuble)
-            session.commit()
-            st.success("Immeuble créé !")
+    # --- Dashboard ---
+    if choice == "Dashboard":
+        st.subheader("Dashboard")
+        nb_copro = session.query(Coproprietaire).count()
+        nb_immeubles = session.query(Immeuble).count()
+        st.write(f"Nombre de copropriétaires : {nb_copro}")
+        st.write(f"Nombre d'immeubles : {nb_immeubles}")
 
-# Ajouter ici les sections Copropriétaires / Appels de fonds
+    # --- Immeubles ---
+    elif choice == "Immeubles" and role == "syndic":
+        st.subheader("Immeubles")
+        if st.button("Ajouter un immeuble"):
+            nom = st.text_input("Nom de l'immeuble")
+            adresse = st.text_input("Adresse")
+            if st.button("Créer"):
+                immeuble = Immeuble(nom=nom, adresse=adresse)
+                session.add(immeuble)
+                session.commit()
+                st.success("Immeuble créé !")
 
+        st.write("Liste des immeubles existants :")
+        immeubles = session.query(Immeuble).all()
+        for im in immeubles:
+            st.write(f"- {im.nom} ({im.adresse})")
+
+    # --- Copropriétaires ---
+    elif choice == "Copropriétaires":
+        st.subheader("Copropriétaires")
+        if role == "syndic":
+            st.write("Liste complète des copropriétaires :")
+            copros = session.query(Coproprietaire).all()
+            for c in copros:
+                st.write(f"- {c.nom} ({c.email})")
+        else:
+            st.write(f"Bienvenue {user.nom}")
+            # Relevé PDF pour le copro connecté
+            lignes = session.query(LigneAppel).filter_by(copro_id=user.id).all()
+            if st.button("Générer mon relevé PDF"):
+                fichier = generer_pdf_releve(user, lignes)
+                st.download_button(
+                    "Télécharger PDF",
+                    data=open(fichier, "rb").read(),
+                    file_name=f"releve_{user.nom}.pdf"
+                )
+
+    # --- Appels de fonds ---
+    elif choice == "Appels de fonds" and role == "syndic":
+        st.subheader("Appels de fonds")
+        immeubles = session.query(Immeuble).all()
+        im_sel = st.selectbox("Sélectionner un immeuble", immeubles, format_func=lambda x: x.nom)
+        periode = st.text_input("Période (ex: T1 2026)")
+        montant_total = st.number_input("Montant total (€)", min_value=0.0, step=0.01)
+        if st.button("Créer l'appel de fonds"):
+            appel = AppelFonds(
+                immeuble_id=im_sel.id,
+                periode=periode,
+                montant_total=montant_total,
+                statut="brouillon"
+            )
+            session.add(appel)
