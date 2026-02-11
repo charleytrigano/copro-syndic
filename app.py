@@ -1,4 +1,5 @@
-t streamlit as st
+
+ import streamlit as st
  from sqlalchemy.orm import sessionmaker
 -from models import db, Coproprietaire, Immeuble, Lot, AppelFonds, LigneAppel
 +
